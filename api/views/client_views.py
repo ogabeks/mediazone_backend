@@ -21,8 +21,14 @@ class ProfileViewset(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, mixins
             queryset = queryset.filter(company=company)
         except:
             return None
-        
+
+        pk = self.kwargs.get('pk')
+        if pk is not None:
+            queryset = queryset.filter(user__pk=pk)
+
         return queryset
+    
+    
 
 
 # COMPANIES VIEWSET
