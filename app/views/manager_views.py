@@ -1,5 +1,5 @@
 from rest_framework import viewsets, mixins
-from api import models, serializers, permissions
+from app import models, serializers, permissions
 
 
 # ============= #
