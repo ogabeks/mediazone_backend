@@ -1,5 +1,6 @@
 from rest_framework.routers import SimpleRouter
-from api import views
+from app import views
+from django.urls import path
 
 
 urlpatterns = []
@@ -20,6 +21,12 @@ router.register('teacher/fine', views.TeacherFinesViewset)
 router.register('teacher/debt', views.TeacherDebtsViewset)
 router.register('expenses', views.ExpensesViewset)
 
+urlpatterns = [
+    path('check-student/', views.check_student),
+    path('is_subscribed/', views.is_subscribed),
+    path('add_subscription/', views.add_subscription),
+
+]
 
 
 urlpatterns += router.urls
