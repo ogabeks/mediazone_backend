@@ -178,7 +178,7 @@ class Subscription(models.Model):
         ('1', "Aktiv")
     )
     cost = models.CharField(max_length=255)
-    month = models.DateTimeField(auto_now_add=True)
+    month = models.DateTimeField(default=timezone.now())
     group = models.ForeignKey(Group, on_delete=models.PROTECT)
     student = models.ForeignKey(Student, on_delete=models.PROTECT)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)

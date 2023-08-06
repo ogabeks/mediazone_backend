@@ -204,7 +204,7 @@ class Migration(migrations.Migration):
                 ('attendace', models.BooleanField(default=False)),
                 ('payment', models.BooleanField(default=False)),
                 ('mark', models.BooleanField(default=False)),
-                ('app_link', models.CharField(blank=True, max_length=280, null=True)),
+                ('api_link', models.CharField(blank=True, max_length=280, null=True)),
                 ('originator', models.CharField(
                     blank=True, max_length=255, null=True)),
                 ('key', models.CharField(blank=True, max_length=255, null=True)),
