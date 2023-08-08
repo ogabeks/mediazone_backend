@@ -25,6 +25,7 @@ urlpatterns = [
     path('check-student/', views.check_student),
     path('is_subscribed/', views.is_subscribed),
     path('add_subscription/', views.add_subscription),
+    path('students/<int:pk>/', views.delete_student),
 
 ]
 
