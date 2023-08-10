@@ -75,7 +75,7 @@ class SubjectViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 # STUDENTS VIEWSET
-class StudentViewset(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin):
+class StudentViewset(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.AllLevelPermission,
                           permissions.OwnerPermission]
     queryset = models.Student.objects.all().order_by('-id')
@@ -462,3 +462,27 @@ def delete_student(request, pk):
     student.save()
 
     return Response("O'quvchi o'chirildi", status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.ProfileLevelPermission])
+def subscription_history(request, pk):
+
+    try:
+        company = models.Profile.objects.get(
+            user=request.user, is_active=True).company
+    except:
+        return Response("Ruxsat berilmagan", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        student = models.Student.objects.get(
+            id=pk, company=company, status='1')
+    except:
+        return Response("O'quvchi topilmadi", status=status.HTTP_400_BAD_REQUEST)
+
+    history = models.Subscription.objects.filter(
+        student__id=student.pk, company__id=company.pk).order_by('month')
+
+    data = serializers.SubscriptionSerializer(history, many=True).data
+
+    return Response({"data": data}, status=status.HTTP_200_OK)

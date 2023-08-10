@@ -1,8 +1,10 @@
 from rest_framework.serializers import ModelSerializer, BooleanField, CharField
 from . import models
 
+
 class ProfileSerializer(ModelSerializer):
     level_display = CharField(source='get_level_display', read_only=True)
+
     class Meta:
         fields = ('__all__')
         model = models.Profile
@@ -36,13 +38,16 @@ class StudentSerializer(ModelSerializer):
 
 class GroupSerializer(ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
-    
+
     class Meta:
         fields = '__all__'
         model = models.Group
 
 
 class SubscriptionSerializer(ModelSerializer):
+    group_name = CharField(source='group.name', read_only=True)
+    month_name = CharField(source='month.month', read_only=True)
+
     class Meta:
         fields = ('__all__')
         model = models.Subscription
@@ -50,14 +55,15 @@ class SubscriptionSerializer(ModelSerializer):
 
 class CompanySettingsSerializer(ModelSerializer):
     class Meta:
-        fields =  ('__all__')
+        fields = ('__all__')
         model = models.CompanySettings
 
 
 class TeacherBonusSerializer(ModelSerializer):
     class Meta:
-        fields =  ('__all__')
+        fields = ('__all__')
         model = models.TeacherBonus
+
 
 class TeacherAttendaceSerializer(ModelSerializer):
     class Meta:
