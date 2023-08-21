@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.db.models import Sum
 from django.utils import timezone
 from django.core.validators import MinValueValidator
+import json
 
 
 current_month = timezone.now().month
@@ -167,6 +168,30 @@ class Group(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def unpayments(self):
+
+        s = 0
+
+        for student in self.students.all():
+            sb = Subscription.objects.filter(company=self.company, student=student, group=self,
+                                             status='1', month__month=current_month, month__year=current_year).exists()
+            if sb:
+                s += 1
+
+        return self.students.count() - s
+
+    def students_status(self):
+        status = {}
+        students = self.students.all()
+        for student in students:
+            sb = Subscription.objects.filter(company=self.company, student=student, group=self,
+                                             status='1', month__month=current_month, month__year=current_year).exists()
+            if sb:
+                status[student.id] = True
+            else:
+                status[student.id] = False
+        return json.dumps(status)
 
     def __str__(self):
         return self.name

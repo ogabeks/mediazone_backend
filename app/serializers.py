@@ -38,6 +38,10 @@ class StudentSerializer(ModelSerializer):
 
 class GroupSerializer(ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
+    teacher_name = CharField(source='teacher.name', read_only=True)
+    students_count = CharField(source='students.count', read_only=True)
+    unpayments_count = CharField(source='unpayments', read_only=True)
+    status = CharField(source='students_status', read_only=True)
 
     class Meta:
         fields = '__all__'

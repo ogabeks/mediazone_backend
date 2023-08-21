@@ -13,6 +13,7 @@ router.register('company', views.CompanyViewset)
 router.register('subscription', views.CompanySubsciptionViewset)
 router.register('subjects', views.SubjectViewset)
 router.register('students', views.StudentViewset)
+router.register('teachers', views.TeacherViewset)
 router.register('groups', views.GroupViewset)
 router.register('payment', views.SubscriptionViewset)
 router.register('teacher/bonus', views.TeacherBonusViewset)
@@ -28,6 +29,9 @@ urlpatterns = [
     path('actions/students/<int:pk>/', views.delete_student),
     path('actions/students/<int:pk>/subscription_history/',
          views.subscription_history),
+
+    path('data_stats/', views.data_stats),
+
 ]
 
 

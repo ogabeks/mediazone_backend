@@ -114,6 +114,26 @@ class GroupViewset(viewsets.ModelViewSet):
         return queryset
 
 
+# TEACHERS VIEWSET
+class TeacherViewset(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllLevelPermission,
+                          permissions.OwnerPermission]
+    queryset = models.Profile.objects.all().order_by('-id')
+    serializer_class = serializers.ProfileSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+
+        try:
+            company = models.Profile.objects.get(user=user).company
+            queryset = queryset.filter(company=company, level='teacher')
+        except:
+            return None
+
+        return queryset
+
+
 # SUBSCRIPTION VIEWSET
 class SubscriptionViewset(viewsets.ModelViewSet):
     permission_classes = [permissions.ProfileLevelPermission,
@@ -486,3 +506,28 @@ def subscription_history(request, pk):
     data = serializers.SubscriptionSerializer(history, many=True).data
 
     return Response({"data": data}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.ProfileLevelPermission])
+def data_stats(request):
+
+    try:
+        company = models.Profile.objects.get(
+            user=request.user, is_active=True).company
+    except:
+        return Response("Ruxsat berilmagan", status=status.HTTP_400_BAD_REQUEST)
+
+    all_subscriptions = 0
+    groups = models.Group.objects.filter(company=company, status='1')
+    subscriptions = models.Subscription.objects.filter(
+        company=company, status='1', month__month=current_month, month__year=current_year)
+
+    for group in groups:
+        all_subscriptions += group.students.count()
+
+    unpayment = all_subscriptions - subscriptions.count()
+
+    groups_serializer = serializers.GroupSerializer(groups, many=True).data
+
+    return Response({"unpayment": unpayment, 'groups_count': groups.count(), 'groups': groups_serializer}, status=status.HTTP_200_OK)
