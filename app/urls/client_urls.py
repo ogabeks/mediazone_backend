@@ -31,6 +31,8 @@ urlpatterns = [
          views.subscription_history),
 
     path('data_stats/', views.data_stats),
+    path('actions/group/<int:pk>/delete/', views.delete_group),
+    path('teachers/<int:pk>/stats/', views.teacher_stats)
 
 ]
 

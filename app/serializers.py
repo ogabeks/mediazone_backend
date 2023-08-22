@@ -1,9 +1,14 @@
-from rest_framework.serializers import ModelSerializer, BooleanField, CharField
+from rest_framework.serializers import ModelSerializer, BooleanField, CharField, IntegerField, ListField
 from . import models
 
 
 class ProfileSerializer(ModelSerializer):
     level_display = CharField(source='get_level_display', read_only=True)
+    bonus = IntegerField(source='bonus_amount', read_only=True)
+    fine = IntegerField(source='fine_amount', read_only=True)
+    debt = IntegerField(source='debt_amount', read_only=True)
+    attendace = IntegerField(source='attendace_amount', read_only=True)
+    grs = ListField(source='groups', read_only=True)
 
     class Meta:
         fields = ('__all__')
@@ -37,7 +42,7 @@ class StudentSerializer(ModelSerializer):
 
 
 class GroupSerializer(ModelSerializer):
-    students = StudentSerializer(many=True, read_only=True)
+    students = StudentSerializer(many=True)
     teacher_name = CharField(source='teacher.name', read_only=True)
     students_count = CharField(source='students.count', read_only=True)
     unpayments_count = CharField(source='unpayments', read_only=True)

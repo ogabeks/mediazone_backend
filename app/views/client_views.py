@@ -113,8 +113,39 @@ class GroupViewset(viewsets.ModelViewSet):
 
         return queryset
 
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Pop the 'students' data from request.data for special handling
+        students_data = request.data.pop('students', None)
+
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        # Save the updated instance without 'students'
+        self.perform_update(serializer)
+
+        # Handle 'students' data separately if provided
+        if students_data is not None:
+            instance.students.set([])  # Clear existing students
+            for student_data in students_data:
+                student_instance, created = models.Student.objects.get_or_create(
+                    student_id=student_data['student_id'],
+                    defaults=student_data
+                )
+                if not created:
+                    serializers.StudentSerializer(
+                        instance=student_instance, data=student_data, partial=True
+                    ).is_valid(raise_exception=True)
+                    student_instance.save()
+                instance.students.add(student_instance)
+
+        return Response(serializer.data)
 
 # TEACHERS VIEWSET
+
+
 class TeacherViewset(viewsets.ModelViewSet):
     permission_classes = [permissions.AllLevelPermission,
                           permissions.OwnerPermission]
@@ -521,13 +552,84 @@ def data_stats(request):
     all_subscriptions = 0
     groups = models.Group.objects.filter(company=company, status='1')
     subscriptions = models.Subscription.objects.filter(
-        company=company, status='1', month__month=current_month, month__year=current_year)
+        company=company, status='1', month__month=current_month, month__year=current_year, group__status='1')
+
+    s_count = 0
 
     for group in groups:
+        s = models.Subscription.objects.filter(
+            group=group, company=company, status='1', month__month=current_month, month__year=current_year)
+        s_count += s.count()
         all_subscriptions += group.students.count()
 
-    unpayment = all_subscriptions - subscriptions.count()
+    print(all_subscriptions, subscriptions.count())
+
+    unpayment = all_subscriptions - s_count
+    print(unpayment, groups.count())
 
     groups_serializer = serializers.GroupSerializer(groups, many=True).data
 
     return Response({"unpayment": unpayment, 'groups_count': groups.count(), 'groups': groups_serializer}, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+@permission_classes([permissions.ProfileLevelPermission])
+def delete_group(request, pk):
+
+    try:
+        company = models.Profile.objects.get(
+            user=request.user, is_active=True).company
+    except:
+        return Response("Ruxsat berilmagan", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        group = models.Group.objects.get(id=pk, company=company)
+    except:
+        return Response("Guruh topilmadi", status=status.HTTP_400_BAD_REQUEST)
+
+    for student in group.students.all():
+        group.students.remove(student)
+
+    group.status = '0'
+    group.save()
+
+    return Response("Guruh o'chirildi", status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.ProfileLevelPermission])
+def teacher_stats(request, pk):
+    print("good")
+
+    try:
+        company = models.Profile.objects.get(
+            user=request.user, is_active=True).company
+    except:
+        return Response("Ruxsat berilmagan", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        teacher = models.Profile.objects.get(
+            id=pk, company=company, level='teacher')
+    except:
+        return Response("O'qituvchi topilmadi", status=status.HTTP_400_BAD_REQUEST)
+
+    teacher_bonuses = serializers.TeacherBonusSerializer(models.TeacherBonus.objects.filter(
+        teacher=teacher, date__year=current_year, date__month=current_month), many=True).data
+
+    teacher_fines = serializers.TeacherFineSerializer(models.TeacherFine.objects.filter(
+        teacher=teacher, date__year=current_year, date__month=current_month), many=True).data
+
+    teacher_debts = serializers.TeacherDebtSerializer(models.TeacherDebt.objects.filter(
+        teacher=teacher, date__year=current_year, date__month=current_month), many=True).data
+
+    teacher_attendace = serializers.TeacherAttendaceSerializer(models.TeacherAttendace.objects.filter(
+        teacher=teacher, date__year=current_year, date__month=current_month), many=True).data
+
+    response = {
+        'bonuses': teacher_bonuses,
+        'fines': teacher_fines,
+        'debts': teacher_debts,
+        'attendace': teacher_attendace
+    }
+
+    return Response(response, status=status.HTTP_200_OK)

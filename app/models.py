@@ -66,25 +66,33 @@ class Profile(models.Model):
     def __str__(self):
         return self.name
 
-    def bonus_amount(self, month):
+    def bonus_amount(self, month=current_month):
         balance = TeacherBonus.objects.filter(
             teacher=self, date__month=month, date__year=current_year).aggregate(Sum('amount'))
         return balance['amount__sum'] or 0
 
-    def fine_amount(self, month):
+    def fine_amount(self, month=current_month):
         balance = TeacherFine.objects.filter(
             teacher=self, date__month=month, date__year=current_year).aggregate(Sum('amount'))
         return balance['amount__sum'] or 0
 
-    def debt_amount(self, month):
+    def debt_amount(self, month=current_month):
         balance = TeacherDebt.objects.filter(
             teacher=self, date__month=month, date__year=current_year).aggregate(Sum('amount'))
         return balance['amount__sum'] or 0
 
-    def attendace_amount(self, month):
+    def attendace_amount(self, month=current_month):
         balance = TeacherAttendace.objects.filter(
             teacher=self, date__month=month, date__year=current_year).aggregate(Sum('amount'))
         return balance['amount__sum'] or 0
+
+    def groups(self):
+        gr = Group.objects.filter(teacher=self)
+        grs = []
+        for g in gr:
+            grs.append(g.name)
+
+        return grs
 
     def save(self, *args, **kwargs):
         if not self.barcode:
