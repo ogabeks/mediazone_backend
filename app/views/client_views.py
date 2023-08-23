@@ -158,7 +158,8 @@ class TeacherViewset(viewsets.ModelViewSet):
 
         try:
             company = models.Profile.objects.get(user=user).company
-            queryset = queryset.filter(company=company, level='teacher')
+            queryset = queryset.filter(
+                company=company, level='teacher', is_active=True)
         except:
             return None
 
@@ -633,3 +634,25 @@ def teacher_stats(request, pk):
     }
 
     return Response(response, status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+@permission_classes([permissions.ProfileLevelPermission])
+def delete_teacher(request, pk):
+
+    try:
+        company = models.Profile.objects.get(
+            user=request.user, is_active=True).company
+    except:
+        return Response("Ruxsat berilmagan", status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        teacher = models.Profile.objects.get(
+            id=pk, company=company, level='teacher')
+    except:
+        return Response("O'qituvchi topilmadi", status=status.HTTP_400_BAD_REQUEST)
+
+    teacher.is_active = False
+    teacher.save()
+
+    return Response("O'qituvchi o'chirildi", status=status.HTTP_204_NO_CONTENT)

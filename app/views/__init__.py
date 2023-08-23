@@ -3,7 +3,7 @@ from .client_views import (
     SubjectViewset, StudentViewset, GroupViewset, SubscriptionViewset, TeacherBonusViewset,
     TeacherAttendaceViewset, TeacherDebtsViewset, TeacherFinesViewset, ExpensesViewset,
     check_student, is_subscribed, add_subscription, delete_student, subscription_history,
-    data_stats, delete_group, teacher_stats
+    data_stats, delete_group, teacher_stats, delete_teacher
 )
 
 from .manager_views import (
