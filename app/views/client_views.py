@@ -6,6 +6,9 @@ from app import models, permissions, serializers
 from django.utils import timezone
 from datetime import datetime
 
+from django.contrib.auth.models import User
+from django.db import transaction
+
 
 current_month = timezone.now().month
 current_year = timezone.now().year
@@ -656,3 +659,44 @@ def delete_teacher(request, pk):
     teacher.save()
 
     return Response("O'qituvchi o'chirildi", status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.ProfileLevelPermission])
+def create_teacher(request):
+    try:
+        company = models.Profile.objects.get(
+            user=request.user, is_active=True).company
+    except:
+        return Response("Ruxsat berilmagan", status=status.HTTP_400_BAD_REQUEST)
+
+    data = request.data
+
+    user = User.objects.create_user(username=data.get(
+        'username'), password=data.get('password'))
+    profile = models.Profile.objects.create(name=data.get('name'), user=user, phone=data.get(
+        'username'), level='teacher', company=company, is_active=True)
+
+    return Response("O'qituvchi kiritildi", status=status.HTTP_201_CREATED)
+
+
+@api_view(['PATCH'])
+@permission_classes([permissions.ProfileLevelPermission])
+def edit_teacher(request, pk):
+    try:
+        company = models.Profile.objects.get(
+            user=request.user, is_active=True).company
+    except:
+        return Response("Ruxsat berilmagan", status=status.HTTP_400_BAD_REQUEST)
+
+    data = request.data
+
+    profile = models.Profile.objects.get(id=pk, company=company)
+    user = profile.user
+    with transaction.atomic():
+        user.username = data.get('phone')
+        user.save()
+        profile.name = data.get('name')
+        profile.phone = data.get('phone')
+        profile.save()
+        return Response("O'qituvchi malumotlari yangilandi", status=status.HTTP_200_OK)

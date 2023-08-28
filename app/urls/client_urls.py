@@ -33,6 +33,9 @@ urlpatterns = [
     path('data_stats/', views.data_stats),
     path('actions/group/<int:pk>/delete/', views.delete_group),
     path('actions/teachers/<int:pk>/delete/', views.delete_teacher),
+    path('actions/teachers/<int:pk>/edit/', views.edit_teacher),
+
+    path('actions/teachers/insert/', views.create_teacher),
 
     path('teachers/<int:pk>/stats/', views.teacher_stats)
 
