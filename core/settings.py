@@ -6,8 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-n)0zv^q4z60(3z*fpiwx@(-2il@4$l3-yaze7cebtfpu3zas@n'
 
 DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 INSTALLED_APPS = [
@@ -116,9 +115,22 @@ username = 'USERNAME'
 domain = 'DOMAIN'
 project_dir = "PROJECTDIR"
 
-STATIC_ROOT = f'/home/{username}/{domain}/{project_dir}/staticfiles'
-STATICFILES_DIRS = (f'/home/{username}/{domain}/{project_dir}/static', )
-MEDIA_ROOT = f'/home/{username}/{domain}/{project_dir}/media'
+
+if DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    STATICFILES_DIRS = (
+        os.path.join(BASE_DIR, 'frontend/static'),
+    )
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+else:
+    username = username
+    domain = domain
+    project_dir = project_dir
+
+    STATIC_ROOT = f'/home/{username}/{domain}/{project_dir}/staticfiles'
+    MEDIA_ROOT = f'/home/{username}/{domain}/{project_dir}/media'
 
 
 # Default primary key field type
