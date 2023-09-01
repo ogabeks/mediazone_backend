@@ -1,3 +1,5 @@
+from app.models import CompanySettings
+import requests
 from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -9,9 +11,52 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from django.db import transaction
 
-
+current_day = timezone.now().day
 current_month = timezone.now().month
 current_year = timezone.now().year
+
+
+def send_msg(company, reciever, text, msg_type):
+    settings = CompanySettings.objects.get(company=company)
+
+    is_true = False
+    # url = 'http://91.204.239.42:8083/broker-api/send'
+    if msg_type == 'mark':
+        if settings.mark:
+            is_true = True
+    if msg_type == 'payment':
+        if settings.payment:
+            is_true = True
+    if msg_type == 'attendace':
+        if settings.attendace:
+            is_true = True
+
+    if is_true:
+
+        url = settings.api_link
+
+        headers = {'Content-type': 'application/json',  # Определение типа данных
+                   'Accept': 'text/plain',
+                   'Authorization': f'Basic {settings.key}'}
+        data = {
+            "messages":
+            [
+                {
+                    "recipient": reciever,
+                    "message-id": "3700",
+
+                    "sms": {
+
+                        "originator": settings.originator,
+                        "content": {
+                            "text": text
+                        }
+                    }
+                }
+            ]
+        }
+        response = requests.post(url, json=data, headers=headers)
+        return response.status_code
 
 
 # ================================ #
@@ -178,13 +223,27 @@ class SubscriptionViewset(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        date = self.request.query_params.get('date', None)
+
         user = self.request.user
 
-        try:
-            company = models.Profile.objects.get(user=user).company
-            queryset = queryset.filter(company=company)
-        except:
-            return None
+        # try:
+
+        company = models.Profile.objects.get(user=user).company
+        if date:
+            cyear = date.split("-")[0]
+            cmonth = date.split('-')[1]
+            cday = date.split("-")[2]
+            queryset = queryset.filter(company=company, created_at__year=int(
+                cyear), created_at__month=int(cmonth), created_at__day=int(cday))
+        else:
+            queryset = queryset.filter(
+                company=company, created_at__day=current_day, created_at__month=current_month, created_at__year=current_year)
+
+        print(len(queryset))
+
+        # except:
+        #     return None
 
         return queryset
 
@@ -285,12 +344,21 @@ class ExpensesViewset(viewsets.ModelViewSet):
     serializer_class = serializers.ExpenseSerializer
 
     def get_queryset(self):
+        month = self.request.query_params.get('month', None)
         queryset = super().get_queryset()
         user = self.request.user
 
         try:
             company = models.Profile.objects.get(user=user).company
             queryset = queryset.filter(company=company)
+
+            if month:
+                month = int(month)
+                queryset = queryset.filter(
+                    date__month=month, date__year=current_year)
+            else:
+                queryset = queryset.filter(
+                    date__month=current_month, date__year=current_year)
         except:
             return None
 
@@ -493,6 +561,14 @@ def add_subscription(request):
             company=company,
             status='1'
         )
+
+    company_settings = models.CompanySettings.objects.get(company=company)
+    c_date = f'{timezone.now().year}-{timezone.now().month}-{timezone.now().day}  {timezone.now().hour}:{timezone.now().minute}'
+    if company_settings.payment and student.sms_service:
+        text = f'{company.name}\nTo`lov amalga oshirildi.\nTalaba: {student.name}\nSumma: {amount}\nFan: {group.subject.name}\n Sana: {c_date}'
+
+        send_msg(company=company, reciever=student.phone,
+                 text=text, msg_type='payment')
 
     return Response("To'lov muvaffaqiyatli kiritildi", status=status.HTTP_200_OK)
 
@@ -700,3 +776,51 @@ def edit_teacher(request, pk):
         profile.phone = data.get('phone')
         profile.save()
         return Response("O'qituvchi malumotlari yangilandi", status=status.HTTP_200_OK)
+
+
+@api_view(['PATCH'])
+@permission_classes([permissions.ProfileLevelPermission])
+def edit_user(request):
+    try:
+        company = models.Profile.objects.get(
+            user=request.user, is_active=True).company
+    except:
+        return Response("Ruxsat berilmagan", status=status.HTTP_400_BAD_REQUEST)
+
+    data = request.data
+
+    profile = models.Profile.objects.get(user=request.user, company=company)
+    user = profile.user
+    with transaction.atomic():
+        user.username = data.get('phone')
+        user.save()
+        profile.name = data.get('name')
+        profile.phone = data.get('phone')
+        profile.save()
+        return Response("Profil malumotlari yangilandi", status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.ProfileLevelPermission])
+def get_company(request):
+    try:
+        company = models.Profile.objects.get(
+            user=request.user, is_active=True).company
+    except:
+        return Response("Ruxsat berilmagan", status=status.HTTP_400_BAD_REQUEST)
+
+    data = request.data
+
+    try:
+        company_settings = models.CompanySettings.objects.get(company=company)
+    except:
+        company_settings = models.CompanySettings.objects.create(
+            company=company)
+
+    company_data = serializers.CompanySerializer(
+        models.Company.objects.get(id=company.pk)).data
+
+    settings_data = serializers.CompanySettingsSerializer(
+        company_settings).data
+
+    return Response({'company': company_data, 'settings': settings_data}, status=status.HTTP_200_OK)

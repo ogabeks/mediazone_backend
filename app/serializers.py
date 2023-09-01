@@ -56,6 +56,7 @@ class GroupSerializer(ModelSerializer):
 class SubscriptionSerializer(ModelSerializer):
     group_name = CharField(source='group.name', read_only=True)
     month_name = CharField(source='month.month', read_only=True)
+    student_name = CharField(source='student.name', read_only=True)
 
     class Meta:
         fields = ('__all__')
@@ -96,3 +97,9 @@ class ExpenseSerializer(ModelSerializer):
     class Meta:
         fields = ('__all__')
         model = models.Expense
+
+
+class CompanySettingsSerializer(ModelSerializer):
+    class Meta:
+        fields = ('__all__')
+        model = models.CompanySettings

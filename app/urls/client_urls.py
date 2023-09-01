@@ -34,6 +34,9 @@ urlpatterns = [
     path('actions/group/<int:pk>/delete/', views.delete_group),
     path('actions/teachers/<int:pk>/delete/', views.delete_teacher),
     path('actions/teachers/<int:pk>/edit/', views.edit_teacher),
+    path('actions/edit-user/', views.edit_user),
+    path('actions/get-company/', views.get_company),
+
 
     path('actions/teachers/insert/', views.create_teacher),
 
