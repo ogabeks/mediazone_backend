@@ -564,7 +564,7 @@ def add_subscription(request):
 
     company_settings = models.CompanySettings.objects.get(company=company)
     c_date = f'{timezone.now().year}-{timezone.now().month}-{timezone.now().day}  {timezone.now().hour}:{timezone.now().minute}'
-    if company_settings.payment and student.sms_service:
+    if company_settings.payment and company_settings.api_link and student.sms_service:
         text = f'{company.name}\nTo`lov amalga oshirildi.\nTalaba: {student.name}\nSumma: {amount}\nFan: {group.subject.name}\n Sana: {c_date}'
 
         send_msg(company=company, reciever=student.phone,
