@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/static/css/main.e61d3e11.css",
+    "main.js": "/static/js/main.be542bbd.js",
+    "static/media/logo.png": "/static/media/logo.1927334eb0e3524ccd7f.png",
+    "static/media/telegramlogo.png": "/static/media/telegramlogo.ef1b83d9fe3f8cc8dfbc.png",
+    "index.html": "/index.html",
+    "main.e61d3e11.css.map": "/static/css/main.e61d3e11.css.map",
+    "main.be542bbd.js.map": "/static/js/main.be542bbd.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e61d3e11.css",
+    "static/js/main.be542bbd.js"
+  ]
+}
