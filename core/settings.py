@@ -111,9 +111,9 @@ MEDIA_URL = '/media/'
 STATIC_URL = '/static/'
 
 
-username = 'USERNAME'
-domain = 'DOMAIN'
-project_dir = "PROJECTDIR"
+username = 'mediazon'
+domain = 'casher.mediazone.uz'
+project_dir = "django"
 
 
 if DEBUG:
